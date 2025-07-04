@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="Live hand gesture recognition using a webcam and a pre-trained model.">
+    <meta name="keywords" content="hand gesture recognition, machine learning, webcam, live prediction">
+    <meta name="author" content="Niraj_Kumar_45">
+    <title>Hand Gesture Recognition</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: sans-serif;
+            background: #f0f0f0;
+        }
+        h1 { color: #333; }
+        video, canvas { border: 2px solid #333; }
+        #result { font-size: 24px; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Live Hand Gesture Recognition</h1>
+    <video id="video" width="400" height="300" autoplay></video>
+    <canvas id="canvas" width="64" height="64" style="display:none;"></canvas>
+    <div id="result">Detecting...</div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const result = document.getElementById('result');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => { video.srcObject = stream; });
+
+        async function predict() {
+            ctx.drawImage(video, 100, 50, 64, 64, 0, 0, 64, 64);
+            const imageData = canvas.toDataURL('image/png');
+            const res = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData })
+            });
+            const data = await res.json();
+            result.textContent = `Prediction: ${data.label} (${(data.confidence * 100).toFixed(1)}%)`;
+        }
+
+        setInterval(predict, 1000);
+    </script>
+</body>
+</html>
