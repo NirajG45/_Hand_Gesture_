@@ -43,5 +43,19 @@ def predict():
 
     return jsonify({"label": label, "confidence": confidence})
 
+@app.route("/upload", methods=["POST"])
+def upload():
+    data = request.get_json()
+    image_data = data['image']
+    img = preprocess_image(image_data)
+
+    preds = model.predict(img)[0]
+    pred_index = np.argmax(preds)
+    confidence = float(preds[pred_index])
+    label = labels[pred_index]
+
+    return jsonify({"label": label, "confidence": confidence})
+
+
 if __name__ == "__main__":
     app.run(debug=True)
